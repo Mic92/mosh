@@ -79,6 +79,8 @@ my @ssh = ('ssh');
 
 my $term_init = 1;
 
+my $forward_agent = 0;
+
 my $localhost = undef;
 
 my $ssh_pty = 1;
@@ -120,6 +122,7 @@ qq{Usage: $0 [options] [--] [user@]host [command...]
 
         --no-ssh-pty         do not allocate a pseudo tty on ssh connection
 
+-A      --forward-agent      enable ssh agent forwarding
         --no-init            do not send terminal initialization string
 
         --local              run mosh-server locally without using ssh
@@ -165,6 +168,8 @@ GetOptions( 'client=s' => \$client,
 	    'p=s' => \$port_request,
 	    'ssh=s' => sub { @ssh = shellwords($_[1]); },
 	    'ssh-pty!' => \$ssh_pty,
+	    'A' => \$forward_agent,
+	    'forward-agent!' => \$forward_agent,
 	    'init!' => \$term_init,
 	    'local' => \$localhost,
 	    'help' => \$help,
@@ -376,6 +381,10 @@ if ( $pid == 0 ) { # child
   }
   my @server = ( 'new' );
 
+  if ( $forward_agent ) {
+    push @server, ( '-A' );
+  }
+
   push @server, ( '-c', $colors );
 
   push @server, @bind_arguments;
@@ -462,7 +471,14 @@ if ( $pid == 0 ) { # child
   $ENV{ 'MOSH_KEY' } = $key;
   $ENV{ 'MOSH_PREDICTION_DISPLAY' } = $predict;
   $ENV{ 'MOSH_NO_TERM_INIT' } = '1' if !$term_init;
-  exec {$client} ("$client", "-# @cmdline |", $ip, $port);
+  
+  my @client_av = ();
+  if ( $forward_agent ) {
+    push @client_av, ( '-A' );
+  }
+  push @client_av, ( $ip, $port );
+
+  exec {$client} ("$client", "-# @cmdline |", @client_av);
 }
 
 sub shell_quote { join ' ', map {(my $a = $_) =~ s/'/'\\''/g; "'$a'"} @_ }
