@@ -370,6 +370,10 @@ int main( int argc, char *argv[] )
     }
   }
 
+#ifdef HAVE_UTEMPTER
+    utempter_set_helper( "utempter" );
+#endif
+
   try {
     return run_server( desired_ip, desired_port, command_path, command_argv, colors, verbose, with_motd, with_agent_fwd );
   } catch ( const Network::NetworkException &e ) {
