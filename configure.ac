@@ -523,13 +523,7 @@ Check that protoc matches the installed protobuf headers and libraries.])])
 
 # Bash completion needs to ask where it goes if >= 2.0 is installed.
 AS_IF([test "$install_completion" != no],
-  [PKG_CHECK_MODULES([BASH_COMPLETION], [bash-completion >= 2.0],
-     [if test "$prefix" = "NONE"; then
-        completions="`pkg-config --variable=completionsdir bash-completion`"
-      else
-        completions="`pkg-config --define-variable=prefix=$prefix --variable=completionsdir bash-completion`"
-      fi],
-     [completions="${sysconfdir}/bash_completion.d"])
+   [completions="`pkg-config --define-variable=datadir=$datadir --variable=completionsdir bash-completion`"]
    AC_SUBST([completions])])
 
 AC_CONFIG_FILES([
